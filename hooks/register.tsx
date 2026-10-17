@@ -3,29 +3,39 @@ import type { EngineInterface, Register } from 'claude-code'
 
 import type { Host } from './host'
 import { errorText } from './lib/format'
-import { controlSpotify, currentTrack, playOrSearch, spotifyConfigFrom, type SpotifyConfig } from './services/music'
+import { parseSpotifyTarget } from './lib/music'
+import { controlSpotify, coverArt, currentTrack, findTracks, playOrSearch, playSpotifyLink, spotifyConfigFrom, type SpotifyConfig } from './services/music'
 import { musicView, type MusicActions } from './ui/music'
 
 const PANE = 'spotify-claude-code-mod'
 const PANE_TITLE = 'Spotify'
 const REFRESH_MS = 15000
-const TRANSPORT_WORDS = ['play', 'pause', 'next', 'prev']
+const TRANSPORT_WORDS = ['play', 'pause', 'next', 'prev', 'shuffle', 'repeat']
 
 // The engine reads plugin and key as literals, so they stay spelled out.
 const nowPlaying = atom({ plugin: 'spotify-claude-code-mod', key: 'nowPlaying' } as const, null)
 const note = atom({ plugin: 'spotify-claude-code-mod', key: 'note' } as const, null)
+const cover = atom({ plugin: 'spotify-claude-code-mod', key: 'cover' } as const, null)
 
 // The one place `$` becomes the services' Host.
 function hostOf($: EngineInterface): Host {
   return {
     run: (argv, init) => $.process.run(argv, init),
     fetch: (url, init) => $.http.fetch(url, init),
+    readBase64: async path => (await $.fs.read(path, { as: 'bytes' })).base64,
   }
 }
 
 async function refresh($: EngineInterface): Promise<void> {
-  const next = await currentTrack(hostOf($))
+  const host = hostOf($)
+  const next = await currentTrack(host)
   await update($, nowPlaying, () => next)
+
+  // The cover is fetched once per picture, not on every refresh.
+  const url = next?.artworkUrl ?? null
+  if (url === ((await read($, cover))?.url ?? null)) return
+  const png = url ? await coverArt(host, url).catch(() => null) : null
+  await update($, cover, () => (url && png ? { url, png } : null))
 }
 
 // One action: a short note while it runs, the outcome when it is done.
@@ -48,7 +58,17 @@ function actionsOf($: EngineInterface, config: SpotifyConfig | null): MusicActio
     transport: async action => void (await act($, host => controlSpotify(host, action))),
     search: async () => {
       const query = (await $.ui.ask('What should Spotify play? Pick one, or type a search or a Spotify link under Other.', { options: ['lo-fi beats', 'deep focus'], header: 'Spotify' })).trim()
-      if (query) await act($, host => playOrSearch(host, config, query))
+      if (!query) return
+      if (parseSpotifyTarget(query)) return void (await act($, host => playSpotifyLink(host, query)))
+      await act($, async host => {
+        const { tracks, problem } = await findTracks(host, config, query)
+        if (!tracks.length) return problem ?? 'No track found.'
+        const options = tracks.map(track => track.label)
+        const choice = options.length > 1 ? (await $.ui.ask('Which one?', { options, header: 'Spotify' })).trim() : (options[0] ?? '')
+        const picked = tracks.find(track => track.label === choice)
+
+        return picked ? playSpotifyLink(host, picked.uri) : 'Nothing was played.'
+      })
     },
   }
 }
@@ -57,7 +77,7 @@ export const register: Register = (on, options) => {
   const config = spotifyConfigFrom(options)
 
   on('session.start', async ($, e, next) => {
-    await $.command.register({ name: 'spotify', description: 'Open the Spotify pane, or: spotify <play|pause|next|prev|link|search words>' })
+    await $.command.register({ name: 'spotify', description: 'Open the Spotify pane, or: spotify <play|pause|next|prev|shuffle|repeat|link|search words>' })
     void refresh($)
     $.clock.every(REFRESH_MS, () => void refresh($))
 
@@ -82,8 +102,8 @@ export const register: Register = (on, options) => {
   })
 
   on('ui.render', { component: 'Pane', requestId: PANE }, async ($, e) => {
-    const [track, text] = await Promise.all([read($, nowPlaying), read($, note)])
+    const [track, art, text] = await Promise.all([read($, nowPlaying), read($, cover), read($, note)])
 
-    return musicView($.ui.resolve(e), track, text, actionsOf($, config), e.props.bodyColumns)
+    return musicView($.ui.resolve(e), track, art?.png ?? null, text, actionsOf($, config), e.props.bodyColumns)
   })
 }

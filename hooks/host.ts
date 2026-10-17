@@ -5,4 +5,5 @@ import type { HttpInit, HttpResponse, ProcessRunInit, ProcessRunResult } from 'c
 export type Host = {
   run: (argv: string[], init?: ProcessRunInit) => Promise<ProcessRunResult>
   fetch: (url: string, init?: HttpInit) => Promise<HttpResponse>
+  readBase64: (path: string) => Promise<string>
 }
