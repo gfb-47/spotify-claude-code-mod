@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'claude-code/testing'
 
-import type { NowPlaying } from '../types'
+import type { SpotifyNowPlaying } from '../types'
 import type { Kit, MusicActions } from '../hooks/ui/music'
 import { musicView } from '../hooks/ui/music'
 
@@ -9,7 +9,7 @@ const KIT: Kit = { Box: element, Text: element, Button: element, Link: element, 
 const idle = async () => {}
 const ACTIONS: MusicActions = { refresh: idle, transport: idle, search: idle }
 
-const TRACK: NowPlaying = {
+const TRACK: SpotifyNowPlaying = {
   title: 'Song',
   artist: 'Artist',
   album: 'Album',

@@ -1,7 +1,7 @@
 {
   "name": "spotify-claude-code-mod",
   "version": "0.1.0",
-  "description": "Claude Code mod for Spotify: control the Spotify desktop app from Claude Code on macOS: now playing, play/pause/next/previous, play a Spotify link or search for a track. Fixed osascript scripts only, no daemon, no state file.",
+  "description": "Claude Code mod for Spotify: control the Spotify desktop app from Claude Code on macOS: now playing with progress, play/pause/next/previous, volume, shuffle, repeat, play a Spotify link or search for a track. Other plugins can use it through `$.spotify`. Fixed osascript scripts only, no daemon, no state file.",
   "license": "MIT",
   "homepage": "https://github.com/gfb-47/spotify-claude-code-mod",
   "repository": "https://github.com/gfb-47/spotify-claude-code-mod",
@@ -11,7 +11,7 @@
     "spotify_client_id": {
       "type": "string",
       "title": "Spotify client ID",
-      "description": "From a free app at developer.spotify.com/dashboard; only needed for search",
+      "description": "From an app at developer.spotify.com/dashboard; only needed for search",
       "required": false
     },
     "spotify_client_secret": {

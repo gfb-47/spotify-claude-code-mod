@@ -1,4 +1,4 @@
-import type { NowPlaying } from '../../types'
+import type { SpotifyNowPlaying, SpotifySearch } from '../../types'
 import type { Host } from '../host'
 import { parseJson } from '../lib/format'
 import {
@@ -19,7 +19,6 @@ import {
   tempDirOf,
   tracksOf,
   transportArgv,
-  type FoundTrack,
 } from '../lib/music'
 
 export type SpotifyConfig = { id: string; secret: string }
@@ -61,7 +60,7 @@ export async function playSpotifyLink(host: Host, raw: string): Promise<string> 
   return outcome(await command(host, playArgv(target)), `Playing ${target.kind}.`)
 }
 
-export async function currentTrack(host: Host): Promise<NowPlaying | null> {
+export async function currentTrack(host: Host): Promise<SpotifyNowPlaying | null> {
   const answer = await command(host, statusArgv())
 
   return answer ? parseTrack(answer) : null
@@ -86,10 +85,8 @@ export async function coverArt(host: Host, url: string): Promise<string | null> 
   }
 }
 
-export type TrackSearch = { tracks: FoundTrack[]; problem: string | null }
-
 // Looks the query up with Spotify's client-credentials flow (no user login).
-export async function findTracks(host: Host, config: SpotifyConfig | null, raw: string): Promise<TrackSearch> {
+export async function findTracks(host: Host, config: SpotifyConfig | null, raw: string): Promise<SpotifySearch> {
   const query = searchQuery(raw)
   if (!query) return { tracks: [], problem: 'Type something to search for.' }
   if (!config) return { tracks: [], problem: 'Add a Spotify client id and secret in the plugin settings to search.' }

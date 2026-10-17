@@ -1,4 +1,4 @@
-import type { NowPlaying } from '../../types'
+import type { SpotifyFoundTrack, SpotifyNowPlaying } from '../../types'
 
 // Spotify's catalogue is outside this mod, so titles and artists are shown as text only.
 function text(value: unknown, fallback: string): string {
@@ -97,7 +97,7 @@ export function webLink(target: SpotifyTarget): string {
   return `https://open.spotify.com/${target.kind}/${target.uri.slice(target.uri.lastIndexOf(':') + 1)}`
 }
 
-export function parseTrack(stdout: string): NowPlaying | null {
+export function parseTrack(stdout: string): SpotifyNowPlaying | null {
   const fields = stdout.trim().split(SEPARATOR)
   if (fields.length !== FIELDS) return null
   const title = text(fields[0], '')
@@ -169,12 +169,10 @@ export function accessTokenOf(body: unknown): string | null {
   return typeof token === 'string' && /^[\w.~+/-]+=*$/.test(token) ? token : null
 }
 
-export type FoundTrack = { uri: string; label: string }
-
 type SearchItem = { uri?: unknown; name?: unknown; artists?: { name?: unknown }[] }
 
 // The hits worth offering: each URI is checked like any other link, so a bad response cannot reach a script.
-export function tracksOf(body: unknown): FoundTrack[] {
+export function tracksOf(body: unknown): SpotifyFoundTrack[] {
   const items = (body as { tracks?: { items?: unknown } } | null)?.tracks?.items
   if (!Array.isArray(items)) return []
 

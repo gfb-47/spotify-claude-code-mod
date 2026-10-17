@@ -1,6 +1,7 @@
 import { atom, read, update } from 'claude-code'
 import type { EngineInterface, Register } from 'claude-code'
 
+import type { Spotify } from '../types'
 import type { Host } from './host'
 import { errorText } from './lib/format'
 import { parseSpotifyTarget } from './lib/music'
@@ -36,6 +37,17 @@ async function refresh($: EngineInterface): Promise<void> {
   if (url === ((await read($, cover))?.url ?? null)) return
   const png = url ? await coverArt(host, url).catch(() => null) : null
   await update($, cover, () => (url && png ? { url, png } : null))
+}
+
+// What other plugins get as `$.spotify`: the same services the pane uses, so there is one implementation.
+function spotifyOf(host: Host, config: SpotifyConfig | null): Spotify {
+  return {
+    current: () => currentTrack(host),
+    control: action => controlSpotify(host, action),
+    playLink: link => playSpotifyLink(host, link),
+    find: query => findTracks(host, config, query),
+    cover: url => coverArt(host, url),
+  }
 }
 
 // One action: a short note while it runs, the outcome when it is done.
@@ -75,6 +87,18 @@ function actionsOf($: EngineInterface, config: SpotifyConfig | null): MusicActio
 
 export const register: Register = (on, options) => {
   const config = spotifyConfigFrom(options)
+
+  on('engine.create', async (_, e, next) => {
+    const built = await next(e)
+    // The engine only lets `built` be called in place, so the host is spelled out here rather than via hostOf.
+    const host: Host = {
+      run: (argv, init) => built.process.run(argv, init),
+      fetch: (url, init) => built.http.fetch(url, init),
+      readBase64: async path => (await built.fs.read(path, { as: 'bytes' })).base64,
+    }
+
+    return { ...built, spotify: spotifyOf(host, config) }
+  })
 
   on('session.start', async ($, e, next) => {
     await $.command.register({ name: 'spotify', description: 'Open the Spotify pane, or: spotify <play|pause|next|prev|shuffle|repeat|link|search words>' })
