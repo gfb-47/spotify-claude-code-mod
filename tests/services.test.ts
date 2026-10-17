@@ -2,7 +2,7 @@ import type { HttpInit, HttpResponse } from 'claude-code'
 import { describe, expect, test } from 'claude-code/testing'
 
 import type { Host } from '../hooks/host'
-import { controlSpotify, currentTrack, playOrSearch, playSpotifyLink, searchAndPlay, spotifyConfigFrom, type SpotifyConfig } from '../hooks/services/music'
+import { controlSpotify, coverArt, currentTrack, findTracks, playOrSearch, playSpotifyLink, searchAndPlay, spotifyConfigFrom, type SpotifyConfig } from '../hooks/services/music'
 
 type Fake = {
   http?: (url: string, init?: HttpInit) => unknown
@@ -17,6 +17,7 @@ function fakeHost(fake: Fake = {}) {
   const requests: { url: string; method: string }[] = []
   const sent: HttpInit[] = []
   const scripts: string[][] = []
+  const reads: string[] = []
   const host: Host = {
     run: async argv => {
       scripts.push([...argv])
@@ -30,15 +31,21 @@ function fakeHost(fake: Fake = {}) {
 
       return respond(fake.http?.(url, init) ?? null)
     },
+    readBase64: async path => {
+      reads.push(path)
+
+      return 'UE5H'
+    },
   }
 
-  return { host, requests, sent, scripts }
+  return { host, requests, sent, scripts, reads }
 }
 
 describe('spotify service', () => {
   const ID = '0VjIjW4GlUZAMYd2vXMi3b'
   const SPOTIFY: SpotifyConfig = { id: 'client-id', secret: 'client-secret' }
-  const spotifyServer = (url: string) => (url.includes('/api/token') ? { access_token: 'tok-123' } : { tracks: { items: [{ uri: `spotify:track:${ID}` }] } })
+  const spotifyServer = (url: string) =>
+    url.includes('/api/token') ? { access_token: 'tok-123' } : { tracks: { items: [{ uri: `spotify:track:${ID}`, name: 'Song', artists: [{ name: 'Artist' }] }] } }
 
   test('reads the credentials from the plugin options, both or neither', () => {
     expect(spotifyConfigFrom({ spotify_client_id: ' id ', spotify_client_secret: ' secret ' })).toEqual({ id: 'id', secret: 'secret' })
@@ -73,8 +80,21 @@ describe('spotify service', () => {
   })
 
   test('shows what is playing', async () => {
-    const { host } = fakeHost({ osascript: () => ({ stdout: 'Weightless\nMarconi Union\nplaying' }) })
-    expect(await currentTrack(host)).toEqual({ title: 'Weightless', artist: 'Marconi Union', isPlaying: true })
+    const line = ['Weightless', 'Marconi Union', 'Album', 'playing', '65', '480', '70', 'false', 'true', '', `spotify:track:${ID}`].join('\u001f')
+    const { host } = fakeHost({ osascript: () => ({ stdout: line }) })
+    expect(await currentTrack(host)).toEqual({
+      title: 'Weightless',
+      artist: 'Marconi Union',
+      album: 'Album',
+      isPlaying: true,
+      positionSec: 65,
+      durationSec: 480,
+      volume: 70,
+      isShuffling: false,
+      isRepeating: true,
+      artworkUrl: null,
+      url: `https://open.spotify.com/track/${ID}`,
+    })
     expect(await currentTrack(fakeHost({ osascript: () => ({ stdout: '' }) }).host)).toBeNull()
   })
 
@@ -114,6 +134,35 @@ describe('spotify service', () => {
     const words = fakeHost({ http: spotifyServer, osascript: () => ({ stdout: 'ok' }) })
     expect(await playOrSearch(words.host, SPOTIFY, 'leo middea')).toBe('Playing track.')
     expect(words.requests).toHaveLength(2)
+  })
+
+  test('lists the hits for the pane to choose from, without playing any', async () => {
+    const { host, scripts } = fakeHost({ http: spotifyServer })
+    expect(await findTracks(host, SPOTIFY, 'leo middea')).toEqual({ tracks: [{ uri: `spotify:track:${ID}`, label: 'Song - Artist' }], problem: null })
+    expect(scripts).toHaveLength(0)
+    expect((await findTracks(host, null, 'x')).problem).toContain('plugin settings')
+  })
+
+  test('fetches the cover only in a terminal that draws it, and always cleans up', async () => {
+    const DIR = '/var/folders/ab/cd/T/tmp.AbC123'
+    const url = 'https://i.scdn.co/image/' + 'a'.repeat(40)
+    const answer = (term: string) => (argv: string[]) => ({
+      stdout: argv[0] === 'mktemp' ? DIR : argv[0] === 'printenv' ? (argv[1] === 'TERM' ? term : '') : '',
+    })
+
+    const kitty = fakeHost({ osascript: answer('xterm-kitty') })
+    expect(await coverArt(kitty.host, url)).toBe('UE5H')
+    expect(kitty.reads).toEqual([`${DIR}/cover.png`])
+    expect(kitty.scripts.map(argv => argv[0])).toEqual(['printenv', 'printenv', 'mktemp', 'curl', 'sips', 'rm'])
+
+    const plain = fakeHost({ osascript: answer('xterm-256color') })
+    expect(await coverArt(plain.host, url)).toBeNull()
+    expect(plain.scripts.map(argv => argv[0])).toEqual(['printenv', 'printenv'])
+
+    const failing = fakeHost({ osascript: argv => (argv[0] === 'curl' ? { exitCode: 22 } : answer('xterm-kitty')(argv)) })
+    expect(await coverArt(failing.host, url)).toBeNull()
+    expect(failing.scripts.at(-1)).toEqual(['rm', '-r', DIR])
+    expect(failing.reads).toEqual([])
   })
 
   test('refuses a poisoned search result without running a script', async () => {
