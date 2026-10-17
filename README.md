@@ -1,8 +1,8 @@
-# spotify-control: Spotify plugin for Claude Code (macOS)
+# spotify-control: Claude Code Mod for Spotify (macOS)
 
-**spotify-control** is a free, open-source **Spotify plugin for Claude Code** on macOS. Control the **Spotify desktop app** from your terminal without leaving your AI coding session: see what is playing, play, pause, skip, go back, play a Spotify link, or search for a song and play the first result. Uses AppleScript (`osascript`) and the Spotify Web API. MIT licensed.
+**spotify-control** is a free, open-source **Claude Code mod** (plugin) for Spotify on macOS. Control the **Spotify desktop app** from your terminal without leaving your AI coding session: see what is playing, play, pause, skip, go back, play a Spotify link, or search for a song and play the first result. Uses AppleScript (`osascript`) and the Spotify Web API. MIT licensed.
 
-Keywords: Claude Code plugin, Claude Code mod, Spotify, Spotify controller, Spotify CLI, music player, now playing, play pause skip, AppleScript, osascript, macOS, Spotify Web API, TypeScript.
+Keywords: Claude Code mod, Claude Code mods, Claude Code plugin, Spotify mod for Claude Code, Spotify, Spotify controller, Spotify CLI, music player, now playing, play pause skip, AppleScript, osascript, macOS, Spotify Web API, TypeScript.
 
 > Status: v0.1.0. The code is fully unit-tested (strict TypeScript, 23 tests), but it has not yet been tested end to end against a live Spotify app. Issues and pull requests are welcome.
 >
@@ -18,7 +18,7 @@ Keywords: Claude Code plugin, Claude Code mod, Spotify, Spotify controller, Spot
 
 ## Why it is safe
 
-It is a safer alternative to Claude Code Spotify plugins that keep a background daemon and a shared state file.
+It is a safer alternative to Spotify mods and plugins for Claude Code that keep a background daemon and a shared state file.
 This one has neither:
 
 - Every `osascript` script is fixed text. The one value that varies (a Spotify URI) is passed as an argument
