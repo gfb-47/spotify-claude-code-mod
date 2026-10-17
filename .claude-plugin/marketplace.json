@@ -1,0 +1,5 @@
+{
+  "name": "spotify-control",
+  "owner": { "name": "gabrielfbeckman" },
+  "plugins": [{ "name": "spotify-control", "source": "./" }]
+}

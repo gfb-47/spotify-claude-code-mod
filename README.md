@@ -1,0 +1,61 @@
+# spotify-control
+
+A small Claude Code mod that controls the Spotify desktop app on macOS: now playing, play/pause, next, previous,
+play a Spotify link, or search for a track and play the first hit.
+
+It was written as a safer alternative to plugins that keep a background daemon and a shared state file.
+This one has neither:
+
+- Every `osascript` script is fixed text. The one value that varies (a Spotify URI) is passed as an argument
+  that AppleScript reads as data, never pasted into the script.
+- Anything you type or Spotify returns must match a strict, anchored pattern (`spotify:track:<22 chars>` or an
+  `open.spotify.com` link) before it gets near a script.
+- No shell is involved, no daemon, no file in `/tmp`, no microphone, no login.
+- It never launches Spotify; if the app is closed it tells you so.
+- The Spotify client secret lives in Claude Code secure storage and is only ever sent to Spotify's own https endpoints.
+
+## Install
+
+```
+claude plugin marketplace add <owner>/spotify-control
+claude plugin install spotify-control@spotify-control
+```
+
+macOS will ask once whether Claude Code may control Spotify. Allow it (System Settings > Privacy & Security > Automation).
+
+## Search (optional)
+
+Playing links and the transport buttons work with no setup. Search needs a free Spotify developer app:
+
+1. Create an app at https://developer.spotify.com/dashboard (any redirect URI, e.g. `http://127.0.0.1`).
+2. Run `claude plugin configure spotify-control@spotify-control` and enter the client ID and secret.
+
+Search uses the client-credentials flow, so there is no user login and no access to your account.
+
+## Use
+
+- `/spotify` opens or closes the Spotify pane (Prev, Play/Pause, Next, Search, Refresh).
+- `/spotify pause`, `/spotify play`, `/spotify next`, `/spotify prev`
+- `/spotify https://open.spotify.com/track/...` plays that link.
+- `/spotify some song name` searches and plays the first track.
+
+## Develop
+
+```
+scripts/verify.sh
+```
+
+Runs tsc (strict, no unused code), the layer check (`scripts/check-layers.sh`), `claude plugin validate` and
+`claude plugin test`. Set `CLAUDE_CODE_TYPES` and `TSC` if they are not found automatically.
+
+| Path | What lives there |
+|---|---|
+| `hooks/register.tsx` | The only file that uses `$` |
+| `hooks/host.ts` | The port services use: run a process, fetch a URL |
+| `hooks/services/music.ts` | Use cases: transport, play a link, now playing, search |
+| `hooks/lib/music.ts` | Pure rules: URI validation, argv builders, response parsing |
+| `hooks/ui/music.tsx` | The pane view |
+
+## License
+
+MIT

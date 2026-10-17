@@ -1,0 +1,22 @@
+{
+  "name": "spotify-control",
+  "version": "0.1.0",
+  "description": "Control the Spotify desktop app from Claude Code on macOS: now playing, play/pause/next/previous, play a Spotify link or search for a track. Fixed osascript scripts only, no daemon, no state file.",
+  "license": "MIT",
+  "types": "./types/index.d.ts",
+  "userConfig": {
+    "spotify_client_id": {
+      "type": "string",
+      "title": "Spotify client ID",
+      "description": "From a free app at developer.spotify.com/dashboard; only needed for search",
+      "required": false
+    },
+    "spotify_client_secret": {
+      "type": "string",
+      "title": "Spotify client secret",
+      "description": "The secret of the same Spotify app; kept in secure storage and only ever sent to Spotify",
+      "sensitive": true,
+      "required": false
+    }
+  }
+}
