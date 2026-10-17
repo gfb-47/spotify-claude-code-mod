@@ -62,6 +62,23 @@ Everything except search works without it.
 - `/spotify https://open.spotify.com/track/...` plays that link.
 - `/spotify some song name` searches and plays the first track. The pane's Search lets you pick from the results instead.
 
+## Use it from another Claude Code mod
+
+This mod adds a `$.spotify` object that other plugins can call, so a mod with its own Music tab does not need its own
+Spotify code. Install this mod, then in the other plugin:
+
+```ts
+const track = await $.spotify.current() // title, artist, album, progress, volume, shuffle, repeat, cover link
+await $.spotify.control('next') // resume | pause | next | prev | shuffle | repeat | volume-up | volume-down
+const { tracks, problem } = await $.spotify.find('lo-fi beats') // up to four results to pick from
+await $.spotify.playLink(tracks[0].uri)
+const png = await $.spotify.cover(track.artworkUrl) // small base64 PNG, or null
+```
+
+The types are in `types/index.d.ts`. Call it inside a `try`: the engine only allows `$.spotify.method(...)` spelled out in
+place, and a plugin that lists this mod under `dependencies` is not loaded at all when it is missing, so for an optional
+integration leave `dependencies` out and catch the error. Search uses the credentials set on this mod.
+
 ## Develop
 
 ```

@@ -1,6 +1,6 @@
 import type { BoxProps, ButtonProps, ElementConstructor, ImageProps, LinkProps, TextProps } from 'claude-code'
 
-import type { NowPlaying } from '../../types'
+import type { SpotifyNowPlaying } from '../../types'
 import { clip } from '../lib/format'
 
 // The elements the view draws with, from `$.ui.resolve(e)`. Views never see `$`.
@@ -26,13 +26,13 @@ function clock(seconds: number): string {
   return `${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, '0')}`
 }
 
-function progress(track: NowPlaying, columns: number): string {
+function progress(track: SpotifyNowPlaying, columns: number): string {
   const done = track.durationSec > 0 ? Math.min(columns, Math.round((track.positionSec / track.durationSec) * columns)) : 0
 
   return `${clock(track.positionSec)} ${'█'.repeat(done)}${'░'.repeat(columns - done)} ${clock(track.durationSec)}`
 }
 
-export function musicView(ui: Kit, track: NowPlaying | null, cover: string | null, note: string | null, actions: MusicActions, width: number) {
+export function musicView(ui: Kit, track: SpotifyNowPlaying | null, cover: string | null, note: string | null, actions: MusicActions, width: number) {
   const { Box, Text, Button, Link, Image } = ui
   const control = (key: string, label: string, action: string, hotkey: string) => (
     <Button key={`music-${key}`} plain hotkey={hotkey} label={label} onPress={() => actions.transport(action)} />
