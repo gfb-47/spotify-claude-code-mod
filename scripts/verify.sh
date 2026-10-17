@@ -12,7 +12,7 @@ tsc=${TSC:-$(command -v tsc || true)}
 [[ -f $types ]] || { echo "claude-code.d.ts not found; load the plugin-authoring skill or set CLAUDE_CODE_TYPES"; exit 1; }
 [[ -x $tsc ]] || { echo "tsc not found; set TSC"; exit 1; }
 
-config=$(mktemp -t spotify-control-tsconfig)
+config=$(mktemp -t spotify-claude-code-mod-tsconfig)
 trap 'rm -f "$config"' EXIT
 cat >"$config" <<JSON
 { "compilerOptions": { "target": "es2023", "lib": ["es2023"], "types": [], "module": "esnext", "moduleResolution": "bundler",

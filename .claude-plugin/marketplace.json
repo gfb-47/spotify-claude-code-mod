@@ -1,5 +1,5 @@
 {
-  "name": "spotify-control",
+  "name": "spotify-claude-code-mod",
   "owner": { "name": "gabrielfbeckman" },
-  "plugins": [{ "name": "spotify-control", "source": "./" }]
+  "plugins": [{ "name": "spotify-claude-code-mod", "source": "./" }]
 }

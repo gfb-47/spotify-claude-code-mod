@@ -6,14 +6,14 @@ import { errorText } from './lib/format'
 import { controlSpotify, currentTrack, playOrSearch, spotifyConfigFrom, type SpotifyConfig } from './services/music'
 import { musicView, type MusicActions } from './ui/music'
 
-const PANE = 'spotify-control'
+const PANE = 'spotify-claude-code-mod'
 const PANE_TITLE = 'Spotify'
 const REFRESH_MS = 15000
 const TRANSPORT_WORDS = ['play', 'pause', 'next', 'prev']
 
 // The engine reads plugin and key as literals, so they stay spelled out.
-const nowPlaying = atom({ plugin: 'spotify-control', key: 'nowPlaying' } as const, null)
-const note = atom({ plugin: 'spotify-control', key: 'note' } as const, null)
+const nowPlaying = atom({ plugin: 'spotify-claude-code-mod', key: 'nowPlaying' } as const, null)
+const note = atom({ plugin: 'spotify-claude-code-mod', key: 'note' } as const, null)
 
 // The one place `$` becomes the services' Host.
 function hostOf($: EngineInterface): Host {

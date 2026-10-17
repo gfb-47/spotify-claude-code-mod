@@ -1,6 +1,6 @@
-# spotify-control: Claude Code Mod for Spotify (macOS)
+# spotify-claude-code-mod: Claude Code Mod for Spotify (macOS)
 
-**spotify-control** is a free, open-source **Claude Code mod** (plugin) for Spotify on macOS. Control the **Spotify desktop app** from your terminal without leaving your AI coding session: see what is playing, play, pause, skip, go back, play a Spotify link, or search for a song and play the first result. Uses AppleScript (`osascript`) and the Spotify Web API. MIT licensed.
+**spotify-claude-code-mod** is a free, open-source **Claude Code mod** (plugin) for Spotify on macOS. Control the **Spotify desktop app** from your terminal without leaving your AI coding session: see what is playing, play, pause, skip, go back, play a Spotify link, or search for a song and play the first result. Uses AppleScript (`osascript`) and the Spotify Web API. MIT licensed.
 
 Keywords: Claude Code mod, Claude Code mods, Claude Code plugin, Spotify mod for Claude Code, Spotify, Spotify controller, Spotify CLI, music player, now playing, play pause skip, AppleScript, osascript, macOS, Spotify Web API, TypeScript.
 
@@ -32,8 +32,8 @@ This one has neither:
 ## Install
 
 ```
-claude plugin marketplace add gfb-47/spotify-control
-claude plugin install spotify-control@spotify-control
+claude plugin marketplace add gfb-47/spotify-claude-code-mod
+claude plugin install spotify-claude-code-mod@spotify-claude-code-mod
 ```
 
 macOS will ask once whether Claude Code may control Spotify. Allow it (System Settings > Privacy & Security > Automation).
@@ -43,7 +43,7 @@ macOS will ask once whether Claude Code may control Spotify. Allow it (System Se
 Playing links and the transport buttons work with no setup. Search needs a free Spotify developer app:
 
 1. Create an app at https://developer.spotify.com/dashboard (any redirect URI, e.g. `http://127.0.0.1`).
-2. Run `claude plugin configure spotify-control@spotify-control` and enter the client ID and secret.
+2. Run `claude plugin configure spotify-claude-code-mod@spotify-claude-code-mod` and enter the client ID and secret.
 
 Search uses the client-credentials flow, so there is no user login and no access to your account.
 
